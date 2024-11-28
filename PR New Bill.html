@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PR Jewelers | Gold & Silver Billing</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+        h2, h3 {
+            color: #333;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .btn-download {
+            background-color: #007BFF;
+            margin-top: 10px;
+        }
+        .btn-add {
+            background-color: #ffa500;
+            margin-top: 10px;
+        }
+        .btn-edit {
+            background-color: #f39c12;
+            margin-top: 10px;
+        }
+        .btn-new {
+            background-color: #e74c3c;
+            margin-top: 10px;
+        }
+        .table-container {
+            margin-top: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .product-row {
+            margin-bottom: 10px;
+        }
+        #bill-section {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PR Jewelers | Vallioor - 627117</h1>
+
+        <!-- Form Section -->
+        <div id="form-section">
+            <h2>Enter Transaction Details</h2>
+
+            <!-- Gold Products Section -->
+            <div id="gold-products">
+                <h3>Gold Products</h3>
+                <div id="goldProductRows">
+                    <!-- Product Rows for Gold will be added dynamically here -->
+                </div>
+                <button class="btn btn-add" onclick="addGoldProductRow()">Add Gold Product</button>
+            </div>
+
+            <!-- Silver Products Section -->
+            <div id="silver-products">
+                <h3>Silver Products</h3>
+                <div id="silverProductRows">
+                    <!-- Product Rows for Silver will be added dynamically here -->
+                </div>
+                <button class="btn btn-add" onclick="addSilverProductRow()">Add Silver Product</button>
+            </div>
+
+            <!-- Old Gold and Silver Section -->
+            <div id="old-items">
+                <h3>Old Gold and Silver</h3>
+                <div class="form-group">
+                    <label for="oldGoldRate">Old Gold Rate (per gram):</label>
+                    <input type="number" id="oldGoldRate" placeholder="Enter rate for old gold">
+                    <label for="oldGoldWeight">Old Gold Weight (grams):</label>
+                    <input type="number" id="oldGoldWeight" placeholder="Enter weight for old gold">
+                </div>
+                <div class="form-group">
+                    <label for="oldSilverRate">Old Silver Rate (per gram):</label>
+                    <input type="number" id="oldSilverRate" placeholder="Enter rate for old silver">
+                    <label for="oldSilverWeight">Old Silver Weight (grams):</label>
+                    <input type="number" id="oldSilverWeight" placeholder="Enter weight for old silver">
+                </div>
+            </div>
+
+            <button class="btn" onclick="generateBill()">Generate Bill</button>
+        </div>
+
+        <!-- Bill Section -->
+        <div id="bill-section">
+            <div id="bill-content">
+                <h2>PR Jewelers | Invoice</h2>
+                <p>Address: Vallioor - 627117</p>
+                <p>Date: <span id="currentDate"></span></p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Rate</th>
+                            <th>Weight</th>
+                            <th>Making Charges</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="billDetails">
+                        <!-- Bill Details will populate here -->
+                    </tbody>
+                </table>
+                <h3>Total Amount: ₹<span id="totalAmount"></span></h3>
+                <h3>SGST (1.5%): ₹<span id="sgstAmount"></span></h3>
+                <h3>CGST (1.5%): ₹<span id="cgstAmount"></span></h3>
+                <h3>Old Gold Total: ₹<span id="oldGoldTotal"></span></h3>
+                <h3>Old Silver Total: ₹<span id="oldSilverTotal"></span></h3>
+                <h3>Final Amount: ₹<span id="finalAmount"></span></h3>
+            </div>
+            <button class="btn btn-download" onclick="downloadPDF()">Download PDF</button>
+            <button class="btn btn-edit" onclick="editBill()">Edit Bill</button>
+            <button class="btn btn-new" onclick="newBill()">New Bill</button>
+        </div>
+    </div>
+
+    <script>
+        let goldProductCount = 0;
+        let silverProductCount = 0;
+
+        function addGoldProductRow() {
+            goldProductCount++;
+            const row = `
+                <div class="form-group" id="goldProductRow${goldProductCount}">
+                    <label for="goldRate${goldProductCount}">Gold Rate (per gram) - Product ${goldProductCount}:</label>
+                    <input type="number" id="goldRate${goldProductCount}" placeholder="Enter gold rate for Product ${goldProductCount}">
+                    <label for="goldWeight${goldProductCount}">Gold Weight (grams) - Product ${goldProductCount}:</label>
+                    <input type="number" id="goldWeight${goldProductCount}" placeholder="Enter weight for Product ${goldProductCount}">
+                    <label for="goldMaking${goldProductCount}">Gold Making Charges - Product ${goldProductCount}:</label>
+                    <input type="number" id="goldMaking${goldProductCount}" placeholder="Enter making charges for Product ${goldProductCount}">
+                    <label for="goldWastage${goldProductCount}">Gold Wastage (%) - Product ${goldProductCount}:</label>
+                    <input type="number" id="goldWastage${goldProductCount}" placeholder="Enter wastage for Product ${goldProductCount}">
+                </div>
+            `;
+            document.getElementById("goldProductRows").insertAdjacentHTML("beforeend", row);
+        }
+
+        function addSilverProductRow() {
+            silverProductCount++;
+            const row = `
+                <div class="form-group" id="silverProductRow${silverProductCount}">
+                    <label for="silverRate${silverProductCount}">Silver Rate (per gram) - Product ${silverProductCount}:</label>
+                    <input type="number" id="silverRate${silverProductCount}" placeholder="Enter silver rate for Product ${silverProductCount}">
+                    <label for="silverWeight${silverProductCount}">Silver Weight (grams) - Product ${silverProductCount}:</label>
+                    <input type="number" id="silverWeight${silverProductCount}" placeholder="Enter weight for Product ${silverProductCount}">
+                    <label for="silverMaking${silverProductCount}">Silver Making Charges - Product ${silverProductCount}:</label>
+                    <input type="number" id="silverMaking${silverProductCount}" placeholder="Enter making charges for Product ${silverProductCount}">
+                </div>
+            `;
+            document.getElementById("silverProductRows").insertAdjacentHTML("beforeend", row);
+        }
+
+        function generateBill() {
+            let totalGold = 0;
+            let totalSilver = 0;
+            let goldData = [];
+            let silverData = [];
+            
+            // Process Gold Products
+            for (let i = 1; i <= goldProductCount; i++) {
+                let goldRate = parseFloat(document.getElementById(`goldRate${i}`).value) || 0;
+                let goldWeight = parseFloat(document.getElementById(`goldWeight${i}`).value) || 0;
+                let goldMaking = parseFloat(document.getElementById(`goldMaking${i}`).value) || 0;
+                let goldWastage = parseFloat(document.getElementById(`goldWastage${i}`).value) || 0;
+
+                let totalGoldWeight = goldWeight + (goldWeight * (goldWastage / 100));
+                let goldTotal = (goldRate * totalGoldWeight) + goldMaking;
+
+                totalGold += goldTotal;
+                goldData.push({ rate: goldRate, weight: totalGoldWeight, making: goldMaking, total: goldTotal });
+            }
+
+            // Process Silver Products
+            for (let i = 1; i <= silverProductCount; i++) {
+                let silverRate = parseFloat(document.getElementById(`silverRate${i}`).value) || 0;
+                let silverWeight = parseFloat(document.getElementById(`silverWeight${i}`).value) || 0;
+                let silverMaking = parseFloat(document.getElementById(`silverMaking${i}`).value) || 0;
+                let silverTotal = (silverRate * silverWeight) + silverMaking;
+
+                totalSilver += silverTotal;
+                silverData.push({ rate: silverRate, weight: silverWeight, making: silverMaking, total: silverTotal });
+            }
+
+            // Process Old Gold/Silver
+            let oldGoldRate = parseFloat(document.getElementById('oldGoldRate').value) || 0;
+            let oldGoldWeight = parseFloat(document.getElementById('oldGoldWeight').value) || 0;
+            let oldGoldTotal = oldGoldRate * oldGoldWeight;
+
+            let oldSilverRate = parseFloat(document.getElementById('oldSilverRate').value) || 0;
+            let oldSilverWeight = parseFloat(document.getElementById('oldSilverWeight').value) || 0;
+            let oldSilverTotal = oldSilverRate * oldSilverWeight;
+
+            // Calculate total with tax applied
+            let subtotal = totalGold + totalSilver;
+            let sgstAmount = subtotal * 0.015;  // SGST 1.5%
+            let cgstAmount = subtotal * 0.015;  // CGST 1.5%
+            let totalTax = sgstAmount + cgstAmount;
+            let finalAmount = subtotal + totalTax - oldGoldTotal - oldSilverTotal;
+
+            // Display bill details
+            let billDetails = '';
+            goldData.forEach((item, index) => {
+                if (item.rate !== 0) {
+                    billDetails += `
+                        <tr>
+                            <td>Gold Product ${index + 1}</td>
+                            <td>${item.rate}</td>
+                            <td>${item.weight}</td>
+                            <td>${item.making}</td>
+                            <td>${item.total}</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            silverData.forEach((item, index) => {
+                if (item.rate !== 0) {
+                    billDetails += `
+                        <tr>
+                            <td>Silver Product ${index + 1}</td>
+                            <td>${item.rate}</td>
+                            <td>${item.weight}</td>
+                            <td>${item.making}</td>
+                            <td>${item.total}</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            document.getElementById('billDetails').innerHTML = billDetails;
+
+            document.getElementById('totalAmount').innerText = subtotal.toFixed(2);
+            document.getElementById('sgstAmount').innerText = sgstAmount.toFixed(2);
+            document.getElementById('cgstAmount').innerText = cgstAmount.toFixed(2);
+            document.getElementById('finalAmount').innerText = finalAmount.toFixed(2);
+            document.getElementById('oldGoldTotal').innerText = oldGoldTotal.toFixed(2);
+            document.getElementById('oldSilverTotal').innerText = oldSilverTotal.toFixed(2);
+            document.getElementById('currentDate').innerText = new Date().toLocaleDateString();
+
+            // Show the bill section
+            document.getElementById('form-section').style.display = 'none';
+            document.getElementById('bill-section').style.display = 'block';
+        }
+
+        function downloadPDF() {
+            let element = document.getElementById('bill-content');
+            html2pdf(element);
+        }
+
+        function editBill() {
+            // Show the form section and hide the bill section for editing
+            document.getElementById('form-section').style.display = 'block';
+            document.getElementById('bill-section').style.display = 'none';
+        }
+
+        function newBill() {
+            // Clear all inputs and reset the data
+            document.getElementById('goldProductRows').innerHTML = '';
+            document.getElementById('silverProductRows').innerHTML = '';
+            document.getElementById('oldGoldRate').value = '';
+            document.getElementById('oldGoldWeight').value = '';
+            document.getElementById('oldSilverRate').value = '';
+            document.getElementById('oldSilverWeight').value = '';
+            document.getElementById('billDetails').innerHTML = '';
+            document.getElementById('totalAmount').innerText = '0.00';
+            document.getElementById('sgstAmount').innerText = '0.00';
+            document.getElementById('cgstAmount').innerText = '0.00';
+            document.getElementById('finalAmount').innerText = '0.00';
+            document.getElementById('oldGoldTotal').innerText = '0.00';
+            document.getElementById('oldSilverTotal').innerText = '0.00';
+
+            // Show the form section and hide the bill section
+            document.getElementById('form-section').style.display = 'block';
+            document.getElementById('bill-section').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
